@@ -1,94 +1,141 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- * @flow
- */
+ 'use strict';
 
-import React, { Component } from 'react';
-import {
-  AppRegistry,
-  StyleSheet,
-  Text,
-  View,
-    Image
-} from 'react-native';
-
-export default class DummyApplication extends Component {
+ import React, {
+   Component
+ }                     from 'react';
+ import {
+   AppRegistry,
+   StyleSheet,
+   Text,
+   ListView,
+   View,
+   DeviceEventEmitter
+ }                     from 'react-native';
+ import Beacons        from 'react-native-beacons-manager';
 
 
-  render() {
-    let picture_URL = {
-      uri: 'https://ih1.redbubble.net/image.24694638.0052/flat,800x800,070,f.u1.jpg'
-    };
+ class reactNativeBeaconExample extends Component {
+   constructor(props) {
+     super(props);
+     // Create our dataSource which will be displayed in the ListView
+     var ds = new ListView.DataSource({
+       rowHasChanged: (r1, r2) => r1 !== r2 }
+     );
+     this.state = {
+       // region information
+       uuidRef: 'abcdef11223344556677889900fedcba',
+       // React Native ListView datasource initialization
+       dataSource: ds.cloneWithRows([])
+     };
+   }
 
-    return (
-      <View style={{flex: 1}}>
-        <TestText name="World!"/>
-        <TestText name="Earth!"/>
-        <TestText name="Universe!"/>
-        <BlinkingText text="Hello Everyone!"/>
-        <Image source={picture_URL} style={{width: 100, height:100}}/>
-        <Text style={styles.gianttext}>GIANT TEXT</Text>
-        <Text style={styles.smalltext}>small text</Text>
-        <Text style={styles.greentext}>green text</Text>
-        <ColorSquare/>
-      </View>
+   componentWillMount() {
+     //
+     // ONLY non component state aware here in componentWillMount
+     //
+     Beacons.detectIBeacons();
 
+     const uuid = this.state.uuidRef;
+     Beacons
+       .startRangingBeaconsInRegion(
+         'REGION1',
+         uuid
+       )
+       .then(
+         () => console.log('Beacons ranging started succesfully')
+       )
+       .catch(
+         error => console.log(`Beacons ranging not started, error: ${error}`)
+       );
+   }
 
-    );
-  }
-}
+   componentDidMount() {
+     //
+     // component state aware here - attach events
+     //
+     // Ranging:
+     this.beaconsDidRange = DeviceEventEmitter.addListener(
+       'beaconsDidRange',
+       (data) => {
+         this.setState({
+           dataSource: this.state.dataSource.cloneWithRows(data.beacons)
+         });
+       }
+     );
+   }
 
-class TestText extends Component{ // dit is de custom prop TestText, die alleen een text rendert met het attribuut wat door de DummyApplication wordt meegegeven
-  render(){
-    return(
-        <Text>Hello {this.props.name}</Text>
-    );
-  }
-}
+   componentWillUnMount(){
+     this.beaconsDidRange = null;
+   }
 
-class ColorSquare extends Component{
-    render(){
-        return(
-            <View style={{flex: 2}}>
-                <View style={{flex: 3, backgroundColor: 'green'}}/>
-                <View style={{flex: 4, backgroundColor: 'blue'}}/>
-            </View>
-        )
-    }
+   render() {
+     const { dataSource } =  this.state;
+     return (
+       <View style={styles.container}>
+         <Text style={styles.headline}>
+           All beacons in the area
+         </Text>
+         <ListView
+           dataSource={ dataSource }
+           enableEmptySections={ true }
+           renderRow={this.renderRow}
+         />
+       </View>
+     );
+   }
 
-}
+   renderRow = rowData => {
+     return (
+       <View style={styles.row}>
+         <Text style={styles.smallText}>
+           UUID: {rowData.uuid ? rowData.uuid  : 'NA'}
+         </Text>
+         <Text style={styles.smallText}>
+           Major: {rowData.major ? rowData.major : 'NA'}
+         </Text>
+         <Text style={styles.smallText}>
+           Minor: {rowData.minor ? rowData.minor : 'NA'}
+         </Text>
+         <Text>
+           RSSI: {rowData.rssi ? rowData.rssi : 'NA'}
+         </Text>
+         <Text>
+           Proximity: {rowData.proximity ? rowData.proximity : 'NA'}
+         </Text>
+         <Text>
+           Distance: {rowData.accuracy ? rowData.accuracy.toFixed(2) : 'NA'}m
+         </Text>
+       </View>
+     );
+   }
+ }
 
-class BlinkingText extends Component{
-    constructor(props){
-        super(props);
-        this.state = {showBlinkingText: true}; // initialiseer 'state' die gebruikt wordt om de dickbutt wel of niet te laten zien
+ const styles = StyleSheet.create({
+   container: {
+     flex: 1,
+     paddingTop: 60,
+     justifyContent: 'center',
+     alignItems: 'center',
+     backgroundColor: '#F5FCFF'
+   },
+   btleConnectionStatus: {
+     // fontSize: 20,
+     paddingTop: 20
+   },
+   headline: {
+     fontSize: 20,
+     paddingTop: 20
+   },
+   row: {
+     padding: 8,
+     paddingBottom: 16
+   },
+   smallText: {
+     fontSize: 11
+   }
+ });
 
-        setInterval(() =>{
-            this.setState({showBlinkingText: !this.state.showBlinkingText}); // deze regel vraagt de showBlinkingText state op en veranderd deze naar de inverse
-        }, 2000); // 2000 is de tijd wanneer de regel hieboven wordt uitgevoerd. 2000 = 2000 milliseconden = 2 seconden
-    }
-
-  render(){
-    let displayImage = this.state.showBlinkingText ? this.props.text: ' ';
-    return(
-      <Text>{displayImage}</Text>
-    );
-  }
-}
-
-const styles = StyleSheet.create({
-  gianttext: {
-    fontSize: 50,
-  },
-
-  smalltext: {
-    fontSize: 5,
-  },
-
-  greentext:{
-    color: 'green',
-  },
-});
-
-AppRegistry.registerComponent('DummyApplication', () => DummyApplication);
+ AppRegistry.registerComponent(
+   'reactNativeBeaconExample',
+   () => reactNativeBeaconExample
+ );
