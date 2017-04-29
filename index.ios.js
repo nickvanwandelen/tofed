@@ -12,7 +12,7 @@ import {
   View
 } from 'react-native';
 
-export default class DummyApplication extends Component {
+export default class reactNativeBeaconExample extends Component {
   render() {
     return (
       <View style={styles.container}>
@@ -50,4 +50,4 @@ const styles = StyleSheet.create({
   },
 });
 
-AppRegistry.registerComponent('DummyApplication', () => DummyApplication);
+AppRegistry.registerComponent('reactNativeBeaconExample', () => reactNativeBeaconExample);
