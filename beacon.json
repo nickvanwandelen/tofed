@@ -1,0 +1,4 @@
+{"beacons":[
+    { "uuid":"abcdef12345678900987654321fedcba", "naam":"Tofed Target 3", "major":"0003", "minor":"0001", "interval":"500", "txPower":"4", "calPower1M":"-58" },
+	{ "uuid":"abcdef11223344556677889900fedcba", "naam":"Tofed Target 2", "major":"0002", "minor":"0001", "interval":"500", "txPower":"4", "calPower1M":"-58" }
+]}
